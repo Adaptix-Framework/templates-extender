@@ -1,4 +1,10 @@
 
+# How connect to server
+
+See [docs](https://adaptix-framework.gitbook.io/adaptix-framework/development/new-extenders)
+
+
+
 # Agent Extender Template
 
 **config.json**
