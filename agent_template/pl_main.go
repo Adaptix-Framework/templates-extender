@@ -30,27 +30,37 @@ const (
 	DOWNLOAD_STATE_STOPPED  = 2
 	DOWNLOAD_STATE_FINISHED = 3
 	DOWNLOAD_STATE_CANCELED = 4
+
+	TUNNEL_TYPE_SOCKS4     = 1
+	TUNNEL_TYPE_SOCKS5     = 2
+	TUNNEL_TYPE_LOCAL_PORT = 4
+	TUNNEL_TYPE_REVERSE    = 5
+
+	ADDRESS_TYPE_IPV4   = 1
+	ADDRESS_TYPE_DOMAIN = 3
+	ADDRESS_TYPE_IPV6   = 4
+
+	SOCKS5_SERVER_FAILURE          byte = 1
+	SOCKS5_NOT_ALLOWED_RULESET     byte = 2
+	SOCKS5_NETWORK_UNREACHABLE     byte = 3
+	SOCKS5_HOST_UNREACHABLE        byte = 4
+	SOCKS5_CONNECTION_REFUSED      byte = 5
+	SOCKS5_TTL_EXPIRED             byte = 6
+	SOCKS5_COMMAND_NOT_SUPPORTED   byte = 7
+	SOCKS5_ADDR_TYPE_NOT_SUPPORTED byte = 8
 )
 
 type Teamserver interface {
 	TsAgentIsExists(agentId string) bool
-	TsAgentGenerate(agentName string, config string, listenerWM string, listenerProfile []byte) ([]byte, string, error)
 	TsAgentCreate(agentCrc string, agentId string, beat []byte, listenerName string, ExternalIP string, Async bool) (adaptix.AgentData, error)
-	TsAgentCommand(agentName string, agentId string, clientName string, hookId string, cmdline string, ui bool, args map[string]any) error
 	TsAgentProcessData(agentId string, bodyData []byte) error
 	TsAgentUpdateData(newAgentData adaptix.AgentData) error
 	TsAgentTerminate(agentId string, terminateTaskId string) error
-	TsAgentRemove(agentId string) error
 
-	TsAgentSetTag(agentId string, tag string) error
-	TsAgentSetMark(agentId string, mark string) error
-	TsAgentSetColor(agentId string, background string, foreground string, reset bool) error
-	TsAgentSetImpersonate(agentId string, impersonated string, elevated bool) error
+	TsAgentUpdateDataPartial(agentId string, updateData interface{}) error
 	TsAgentSetTick(agentId string) error
 
 	TsAgentConsoleOutput(agentId string, messageType int, message string, clearText string, store bool)
-	TsAgentConsoleOutputClient(agentId string, client string, messageType int, message string, clearText string)
-	TsAgentConsoleRemove(agentId string) error
 
 	TsAgentGetHostedAll(agentId string, maxDataSize int) ([]byte, error)
 	TsAgentGetHostedTasks(agentId string, maxDataSize int) ([]byte, error)
@@ -59,8 +69,6 @@ type Teamserver interface {
 	TsTaskRunningExists(agentId string, taskId string) bool
 	TsTaskCreate(agentId string, cmdline string, client string, taskData adaptix.TaskData)
 	TsTaskUpdate(agentId string, updateData adaptix.TaskData)
-	TsTaskCancel(agentId string, taskId string) error
-	TsTaskDelete(agentId string, taskId string) error
 
 	TsTaskGetAvailableAll(agentId string, availableSize int) ([]adaptix.TaskData, error)
 	TsTaskGetAvailableTasks(agentId string, availableSize int) ([]adaptix.TaskData, int, error)
@@ -86,10 +94,6 @@ type Teamserver interface {
 	TsUploadGetFilepath(fileId string) (string, error)
 	TsUploadGetFileContent(fileId string) ([]byte, error)
 
-	TsListenerStart(listenerName string, listenerRegName string, listenerConfig string, listenerWatermark string, listenerCustomData []byte) error
-	TsListenerEdit(listenerName string, listenerRegName string, listenerConfig string) error
-	TsListenerStop(listenerName string, listenerType string) error
-	TsListenerGetProfile(listenerName string, listenerType string) (string, []byte, error)
 	TsListenerInteralHandler(watermark string, data []byte) (string, error)
 
 	TsGetPivotInfoByName(pivotName string) (string, string, string)
@@ -122,14 +126,20 @@ type Teamserver interface {
 	TsTunnelStopRportfwd(AgentId string, Port int)
 
 	TsTunnelConnectionClose(channelId int)
+	TsTunnelConnectionHalt(channelId int, errorCode byte)
 	TsTunnelConnectionResume(AgentId string, channelId int, ioDirect bool)
 	TsTunnelConnectionData(channelId int, data []byte)
 	TsTunnelConnectionAccept(tunnelId int, channelId int)
 
-	TsAgentTerminalCloseChannel(terminalId string, status string) error
 	TsTerminalConnExists(terminalId string) bool
-	TsTerminalConnResume(agentId string, terminalId string)
 	TsTerminalGetPipe(AgentId string, terminalId string) (*io.PipeReader, *io.PipeWriter, error)
+	TsTerminalConnResume(agentId string, terminalId string, ioDirect bool)
+	TsTerminalConnData(terminalId string, data []byte)
+	TsTerminalConnClose(terminalId string, status string) error
+
+	TsConvertCpToUTF8(input string, codePage int) string
+	TsConvertUTF8toCp(input string, codePage int) string
+	TsWin32Error(errorCode uint) string
 }
 
 type ModuleExtender struct {
@@ -268,12 +278,12 @@ func SyncBrowserProcess(ts Teamserver, taskData adaptix.TaskData, processlist []
 
 /// TUNNEL
 
-func (m *ModuleExtender) AgentTunnelCallbacks() (func(channelId int, address string, port int) adaptix.TaskData, func(channelId int, address string, port int) adaptix.TaskData, func(channelId int, data []byte) adaptix.TaskData, func(channelId int, data []byte) adaptix.TaskData, func(channelId int) adaptix.TaskData, func(tunnelId int, port int) adaptix.TaskData, error) {
+func (m *ModuleExtender) AgentTunnelCallbacks() (func(channelId int, tunnelType int, addressType int, address string, port int) adaptix.TaskData, func(channelId int, tunnelType int, addressType int, address string, port int) adaptix.TaskData, func(channelId int, data []byte) adaptix.TaskData, func(channelId int, data []byte) adaptix.TaskData, func(channelId int) adaptix.TaskData, func(tunnelId int, port int) adaptix.TaskData, error) {
 	return TunnelMessageConnectTCP, TunnelMessageConnectUDP, TunnelMessageWriteTCP, TunnelMessageWriteUDP, TunnelMessageClose, TunnelMessageReverse, nil
 }
 
-func TunnelMessageConnectTCP(channelId int, address string, port int) adaptix.TaskData {
-	packData, _ := TunnelCreateTCP(channelId, address, port)
+func TunnelMessageConnectTCP(channelId int, tunnelType int, addressType int, address string, port int) adaptix.TaskData {
+	packData, _ := TunnelCreateTCP(channelId, tunnelType, addressType, address, port)
 
 	taskData := adaptix.TaskData{
 		Type: TYPE_PROXY_DATA,
@@ -284,8 +294,8 @@ func TunnelMessageConnectTCP(channelId int, address string, port int) adaptix.Ta
 	return taskData
 }
 
-func TunnelMessageConnectUDP(channelId int, address string, port int) adaptix.TaskData {
-	packData, _ := TunnelCreateUDP(channelId, address, port)
+func TunnelMessageConnectUDP(channelId int, tunnelType int, addressType int, address string, port int) adaptix.TaskData {
+	packData, _ := TunnelCreateUDP(channelId, tunnelType, addressType, address, port)
 
 	taskData := adaptix.TaskData{
 		Type: TYPE_PROXY_DATA,
@@ -346,12 +356,12 @@ func TunnelMessageReverse(tunnelId int, port int) adaptix.TaskData {
 
 /// TERMINAL
 
-func (m *ModuleExtender) AgentTerminalCallbacks() (func(int, string, int, int) (adaptix.TaskData, error), func(int, []byte) (adaptix.TaskData, error), func(int) (adaptix.TaskData, error), error) {
+func (m *ModuleExtender) AgentTerminalCallbacks() (func(int, string, int, int, int) (adaptix.TaskData, error), func(int, int, []byte) (adaptix.TaskData, error), func(int) (adaptix.TaskData, error), error) {
 	return TerminalMessageStart, TerminalMessageWrite, TerminalMessageClose, nil
 }
 
-func TerminalMessageStart(terminalId int, program string, sizeH int, sizeW int) (adaptix.TaskData, error) {
-	packData, err := TerminalStart(terminalId, program, sizeH, sizeW)
+func TerminalMessageStart(terminalId int, program string, sizeH int, sizeW int, oemCP int) (adaptix.TaskData, error) {
+	packData, err := TerminalStart(terminalId, program, sizeH, sizeW, oemCP)
 	if err != nil {
 		return adaptix.TaskData{}, err
 	}
@@ -365,8 +375,8 @@ func TerminalMessageStart(terminalId int, program string, sizeH int, sizeW int) 
 	return taskData, nil
 }
 
-func TerminalMessageWrite(channelId int, data []byte) (adaptix.TaskData, error) {
-	packData, err := TerminalWrite(channelId, data)
+func TerminalMessageWrite(terminalId int, oemCP int, data []byte) (adaptix.TaskData, error) {
+	packData, err := TerminalWrite(terminalId, oemCP, data)
 	if err != nil {
 		return adaptix.TaskData{}, err
 	}

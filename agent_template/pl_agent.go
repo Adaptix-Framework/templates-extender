@@ -133,13 +133,13 @@ func ProcessTasksResult(ts Teamserver, agentData adaptix.AgentData, taskData ada
 
 /// TUNNELS
 
-func TunnelCreateTCP(channelId int, address string, port int) ([]byte, error) {
+func TunnelCreateTCP(channelId int, tunnelType int, addressType int, address string, port int) ([]byte, error) {
 	/// START CODE HERE
 	return nil, errors.New("Function Tunnel not supported")
 	/// END CODE HERE
 }
 
-func TunnelCreateUDP(channelId int, address string, port int) ([]byte, error) {
+func TunnelCreateUDP(channelId int, tunnelType int, addressType int, address string, port int) ([]byte, error) {
 	/// START CODE HERE
 	return nil, errors.New("Function Tunnel not supported")
 	/// END CODE HERE
@@ -171,13 +171,13 @@ func TunnelReverse(tunnelId int, port int) ([]byte, error) {
 
 /// TERMINAL
 
-func TerminalStart(terminalId int, program string, sizeH int, sizeW int) ([]byte, error) {
+func TerminalStart(terminalId int, program string, sizeH int, sizeW int, oemCP int) ([]byte, error) {
 	/// START CODE HERE
 	return nil, errors.New("Function Remote Terminal not supported")
 	/// END CODE HERE
 }
 
-func TerminalWrite(terminalId int, data []byte) ([]byte, error) {
+func TerminalWrite(terminalId int, oemCP int, data []byte) ([]byte, error) {
 	/// START CODE HERE
 	return nil, errors.New("Function Remote Terminal not supported")
 	/// END CODE HERE
