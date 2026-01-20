@@ -1,0 +1,6 @@
+extender_type: "service"
+extender_file: "_SO_FILE_HERE_"
+ax_file: "ax_config.axs"
+
+service_name: "_SERVICE_"
+service_config: ""

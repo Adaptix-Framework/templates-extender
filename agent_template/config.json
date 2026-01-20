@@ -1,9 +1,0 @@
-{
-  "extender_type": "agent",
-  "extender_file": "_SO_FILE_HERE_",
-  "ax_file": "ax_config.axs",
-
-  "agent_name": "_AGENT_",
-  "agent_watermark": "_RANDOM_HEX_8_",
-  "listeners": [ "_LISTENER_1_",  "_LISTENER_2_"]
-}

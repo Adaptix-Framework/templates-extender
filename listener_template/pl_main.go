@@ -1,50 +1,14 @@
 package main
 
 import (
-	"errors"
-	"io"
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"strconv"
+	"strings"
 
-	"github.com/Adaptix-Framework/axc2"
-)
-
-const (
-	OS_UNKNOWN = 0
-	OS_WINDOWS = 1
-	OS_LINUX   = 2
-	OS_MAC     = 3
-
-	TYPE_TASK       = 1
-	TYPE_BROWSER    = 2
-	TYPE_JOB        = 3
-	TYPE_TUNNEL     = 4
-	TYPE_PROXY_DATA = 5
-
-	MESSAGE_INFO    = 5
-	MESSAGE_ERROR   = 6
-	MESSAGE_SUCCESS = 7
-
-	DOWNLOAD_STATE_RUNNING  = 1
-	DOWNLOAD_STATE_STOPPED  = 2
-	DOWNLOAD_STATE_FINISHED = 3
-	DOWNLOAD_STATE_CANCELED = 4
-
-	TUNNEL_TYPE_SOCKS4     = 1
-	TUNNEL_TYPE_SOCKS5     = 2
-	TUNNEL_TYPE_LOCAL_PORT = 4
-	TUNNEL_TYPE_REVERSE    = 5
-
-	ADDRESS_TYPE_IPV4   = 1
-	ADDRESS_TYPE_DOMAIN = 3
-	ADDRESS_TYPE_IPV6   = 4
-
-	SOCKS5_SERVER_FAILURE          byte = 1
-	SOCKS5_NOT_ALLOWED_RULESET     byte = 2
-	SOCKS5_NETWORK_UNREACHABLE     byte = 3
-	SOCKS5_HOST_UNREACHABLE        byte = 4
-	SOCKS5_CONNECTION_REFUSED      byte = 5
-	SOCKS5_TTL_EXPIRED             byte = 6
-	SOCKS5_COMMAND_NOT_SUPPORTED   byte = 7
-	SOCKS5_ADDR_TYPE_NOT_SUPPORTED byte = 8
+	adaptix "github.com/Adaptix-Framework/axc2"
+	"github.com/gin-gonic/gin"
 )
 
 type Teamserver interface {
@@ -139,86 +103,87 @@ type Teamserver interface {
 	TsWin32Error(errorCode uint) string
 }
 
-type ModuleExtender struct {
-	ts Teamserver
-}
+type PluginListener struct{}
 
 var (
-	ModuleObject    *ModuleExtender
 	ModuleDir       string
 	ListenerDataDir string
-	ListenersObject []any //*HTTP
+	Ts              Teamserver
 )
 
-func InitPlugin(ts any, moduleDir string, listenerDir string) any {
+func InitPlugin(ts any, moduleDir string, listenerDir string) adaptix.PluginListener {
 	ModuleDir = moduleDir
 	ListenerDataDir = listenerDir
-
-	ModuleObject = &ModuleExtender{
-		ts: ts.(Teamserver),
-	}
-	return ModuleObject
+	Ts = ts.(Teamserver)
+	return &PluginListener{}
 }
 
-func (m *ModuleExtender) ListenerValid(data string) error {
-	return m.HandlerListenerValid(data)
-}
-
-func (m *ModuleExtender) ListenerStart(name string, data string, listenerCustomData []byte) (adaptix.ListenerData, []byte, error) {
-	listenerData, customData, listener, err := m.HandlerCreateListenerDataAndStart(name, data, listenerCustomData)
-	if err != nil {
-		return listenerData, customData, err
-	}
-
-	ListenersObject = append(ListenersObject, listener)
-
-	return listenerData, customData, nil
-}
-
-func (m *ModuleExtender) ListenerEdit(name string, data string) (adaptix.ListenerData, []byte, error) {
-	for _, value := range ListenersObject {
-		listenerData, customData, ok := m.HandlerEditListenerData(name, value, data)
-		if ok {
-			return listenerData, customData, nil
-		}
-	}
-	return adaptix.ListenerData{}, nil, errors.New("listener not found")
-}
-
-func (m *ModuleExtender) ListenerStop(name string) error {
+func (p *PluginListener) Create(name string, config string, customData []byte) (adaptix.ExtenderListener, adaptix.ListenerData, []byte, error) {
 	var (
-		index int
-		err   error
-		ok    bool
+		listener     *Listener
+		listenerData adaptix.ListenerData
+//		conf         TransportConfig
+		customdData  []byte
+		err          error
 	)
 
-	for ind, value := range ListenersObject {
-		ok, err = m.HandlerListenerStop(name, value)
-		if ok {
-			index = ind
-			break
-		}
-	}
+	/// START CODE HERE
 
-	if ok {
-		ListenersObject = append(ListenersObject[:index], ListenersObject[index+1:]...)
-	} else {
-		return errors.New("listener not found")
-	}
+	/// END CODE HERE
 
-	return err
+	return listener, listenerData, customdData, nil
 }
 
-func (m *ModuleExtender) ListenerGetProfile(name string) ([]byte, error) {
-	for _, value := range ListenersObject {
-		profile, ok := m.HandlerListenerGetProfile(name, value)
-		if ok {
-			return profile, nil
-		}
-	}
-	return nil, errors.New("listener not found")
+func (l *Listener) Start() error {
+
+	/// START CODE HERE
+
+	/// END CODE HERE
 }
 
-func (m *ModuleExtender) ListenerInteralHandler(name string, data []byte) (string, error) {
-	return "", errors.New("listener not found")
+func (l *Listener) Edit(config string) (adaptix.ListenerData, []byte, error) {
+	var (
+		listenerData adaptix.ListenerData
+//		conf         TransportConfig
+		customdData  []byte
+		err          error
+	)
+
+//	err = json.Unmarshal([]byte(config), &conf)
+//	if err != nil {
+//		return listenerData, customdData, err
+//	}
+
+	/// START CODE HERE
+
+	/// END CODE HERE
+
+	return listenerData, customdData, nil
+}
+
+func (l *Listener) Stop() error {
+
+	/// START CODE HERE
+
+	/// END CODE HERE
+}
+
+func (l *Listener) GetProfile() ([]byte, error) {
+	var buffer bytes.Buffer
+
+	/// START CODE HERE
+
+	/// END CODE HERE
+
+	return buffer.Bytes(), nil
+}
+
+func (l *Listener) InternalHandler(data []byte) (string, error) {
+	var agentId = ""
+
+	/// START CODE HERE
+
+	/// END CODE HERE
+
+	return agentId, nil
 }

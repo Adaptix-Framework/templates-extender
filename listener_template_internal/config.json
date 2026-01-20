@@ -1,9 +1,0 @@
-{
-  "extender_type": "listener",
-  "extender_file": "_SO_FILE_HERE_",
-  "ax_file": "ax_config.axs",
-
-  "listener_name": "_LISTENER_",
-  "listener_type": "internal",
-  "protocol": "_PROTOCOL_"
-}
