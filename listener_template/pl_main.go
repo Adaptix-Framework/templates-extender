@@ -19,7 +19,7 @@ type Teamserver interface {
 	TsAgentTerminate(agentId string, terminateTaskId string) error
 
 	TsAgentUpdateDataPartial(agentId string, updateData interface{}) error
-	TsAgentSetTick(agentId string) error
+	TsAgentSetTick(agentId string, listenerName string) error
 
 	TsAgentConsoleOutput(agentId string, messageType int, message string, clearText string, store bool)
 
