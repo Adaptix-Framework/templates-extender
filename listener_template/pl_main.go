@@ -2,13 +2,9 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
-	"fmt"
-	"strconv"
-	"strings"
+	"io"
 
 	adaptix "github.com/Adaptix-Framework/axc2"
-	"github.com/gin-gonic/gin"
 )
 
 type Teamserver interface {
@@ -120,13 +116,20 @@ func InitPlugin(ts any, moduleDir string, listenerDir string) adaptix.PluginList
 	return &PluginListener{}
 }
 
+/// CHANGE IT ////////////////
+
+type Listener struct {
+}
+
+////////////////////////////
+
 func (p *PluginListener) Create(name string, config string, customData []byte) (adaptix.ExtenderListener, adaptix.ListenerData, []byte, error) {
 	var (
-		listener     *Listener
+		listener *Listener
+		//conf         TransportConfig
+		//err          error
 		listenerData adaptix.ListenerData
-//		conf         TransportConfig
 		customdData  []byte
-		err          error
 	)
 
 	/// START CODE HERE
@@ -140,21 +143,23 @@ func (l *Listener) Start() error {
 
 	/// START CODE HERE
 
+	return nil
+
 	/// END CODE HERE
 }
 
 func (l *Listener) Edit(config string) (adaptix.ListenerData, []byte, error) {
 	var (
 		listenerData adaptix.ListenerData
-//		conf         TransportConfig
-		customdData  []byte
-		err          error
+		//conf         TransportConfig
+		//err          error
+		customdData []byte
 	)
 
-//	err = json.Unmarshal([]byte(config), &conf)
-//	if err != nil {
-//		return listenerData, customdData, err
-//	}
+	//	err = json.Unmarshal([]byte(config), &conf)
+	//	if err != nil {
+	//		return listenerData, customdData, err
+	//	}
 
 	/// START CODE HERE
 
@@ -166,6 +171,8 @@ func (l *Listener) Edit(config string) (adaptix.ListenerData, []byte, error) {
 func (l *Listener) Stop() error {
 
 	/// START CODE HERE
+
+	return nil
 
 	/// END CODE HERE
 }

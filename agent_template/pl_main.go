@@ -1,19 +1,11 @@
 package main
 
 import (
-	"encoding/base64"
-	"encoding/binary"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"math/rand/v2"
-	"net"
-	"os"
-	"sort"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/Adaptix-Framework/axc2"
@@ -300,13 +292,13 @@ func (p *PluginAgent) CreateAgent(beat []byte) (adaptix.AgentData, adaptix.Exten
 
 func (ext *ExtenderAgent) Encrypt(data []byte, key []byte) ([]byte, error) {
 	/// START CODE
-
+	return data, nil
 	/// END CODE
 }
 
 func (ext *ExtenderAgent) Decrypt(data []byte, key []byte) ([]byte, error) {
 	/// START CODE
-
+	return data, nil
 	/// END CODE
 }
 
@@ -367,9 +359,11 @@ func (ext *ExtenderAgent) CreateCommand(agentData adaptix.AgentData, args map[st
 
 	/// START CODE HERE
 
+	fmt.Println(command)
+	fmt.Println(subcommand)
+
 	/// END CODE
 
-RET:
 	return taskData, messageData, err
 }
 
@@ -386,6 +380,8 @@ func (ext *ExtenderAgent) ProcessData(agentData adaptix.AgentData, decryptedData
 	}
 
 	/// START CODE
+
+	fmt.Printf(taskData.TaskId)
 
 	/// END CODE
 
