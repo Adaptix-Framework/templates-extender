@@ -45,10 +45,12 @@ type Teamserver interface {
 	TsTasksPivotExists(agentId string, first bool) bool
 	TsTaskGetAvailablePivotAll(agentId string, availableSize int) ([]adaptix.TaskData, error)
 
-	TsClientGuiDisks(taskData adaptix.TaskData, jsonDrives string)
-	TsClientGuiFiles(taskData adaptix.TaskData, path string, jsonFiles string)
+	TsClientGuiDisksWindows(taskData adaptix.TaskData, drives []adaptix.ListingDrivesDataWin)
 	TsClientGuiFilesStatus(taskData adaptix.TaskData)
-	TsClientGuiProcess(taskData adaptix.TaskData, jsonFiles string)
+	TsClientGuiFilesWindows(taskData adaptix.TaskData, path string, files []adaptix.ListingFileDataWin)
+	TsClientGuiFilesUnix(taskData adaptix.TaskData, path string, files []adaptix.ListingFileDataUnix)
+	TsClientGuiProcessWindows(taskData adaptix.TaskData, process []adaptix.ListingProcessDataWin)
+	TsClientGuiProcessUnix(taskData adaptix.TaskData, process []adaptix.ListingProcessDataUnix)
 
 	TsCredentilsAdd(creds []map[string]interface{}) error
 	TsCredentilsEdit(credId string, username string, password string, realm string, credType string, tag string, storage string, host string) error
@@ -94,7 +96,7 @@ type Teamserver interface {
 	TsTunnelStopLportfwd(AgentId string, Port int)
 	TsTunnelStopRportfwd(AgentId string, Port int)
 
-	TsTunnelConnectionClose(channelId int)
+	TsTunnelConnectionClose(channelId int, writeOnly bool)
 	TsTunnelConnectionHalt(channelId int, errorCode byte)
 	TsTunnelConnectionResume(AgentId string, channelId int, ioDirect bool)
 	TsTunnelConnectionData(channelId int, data []byte)
