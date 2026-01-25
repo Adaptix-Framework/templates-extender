@@ -93,6 +93,8 @@ type Teamserver interface {
 	TsTunnelConnectionResume(AgentId string, channelId int, ioDirect bool)
 	TsTunnelConnectionData(channelId int, data []byte)
 	TsTunnelConnectionAccept(tunnelId int, channelId int)
+	TsTunnelPause(channelId int)
+	TsTunnelResume(channelId int)
 
 	TsTerminalConnExists(terminalId string) bool
 	TsTerminalGetPipe(AgentId string, terminalId string) (*io.PipeReader, *io.PipeWriter, error)
@@ -159,6 +161,8 @@ func (ext *ExtenderAgent) TunnelCallbacks() adaptix.TunnelCallbacks {
 		ConnectUDP: TunnelMessageConnectUDP,
 		WriteTCP:   TunnelMessageWriteTCP,
 		WriteUDP:   TunnelMessageWriteUDP,
+		Pause:      TunnelMessagePause,
+		Resume:     TunnelMessageResume,
 		Close:      TunnelMessageClose,
 		Reverse:    TunnelMessageReverse,
 	}
@@ -189,6 +193,22 @@ func TunnelMessageWriteTCP(channelId int, data []byte) adaptix.TaskData {
 }
 
 func TunnelMessageWriteUDP(channelId int, data []byte) adaptix.TaskData {
+	var packData []byte
+	/// START CODE HERE
+
+	/// END CODE HERE
+	return makeProxyTask(packData)
+}
+
+func TunnelMessagePause(channelId int) adaptix.TaskData {
+	var packData []byte
+	/// START CODE HERE
+
+	/// END CODE HERE
+	return makeProxyTask(packData)
+}
+
+func TunnelMessageResume(channelId int) adaptix.TaskData {
 	var packData []byte
 	/// START CODE HERE
 

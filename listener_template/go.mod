@@ -3,7 +3,7 @@ module adaptix_listener_NAME_PROTOCOL
 go 1.25.4
 
 require (
-	github.com/Adaptix-Framework/axc2 v1.1.1
+	github.com/Adaptix-Framework/axc2 v1.1.3
 	github.com/gin-gonic/gin v1.11.0
 )
 
