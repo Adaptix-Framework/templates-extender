@@ -1,11 +1,11 @@
 /// _AGENT_
 
-function RegisterCommands(listenerType)
+function RegisterCommands(listener_type)
 {
 
 /// Commands Here
 
-    if(listenerType == "_LISTENER_") {
+    if(listener_type == "_LISTENER_") {
         let commands_external = ax.create_commands_group("_AGENT_", [] );
 
         return { commands_windows: commands_external }
@@ -13,7 +13,7 @@ function RegisterCommands(listenerType)
     return ax.create_commands_group("none",[]);
 }
 
-function GenerateUI(listenerType)
+function GenerateUI(listeners_type)
 {
 
 /// Form Here
@@ -24,6 +24,8 @@ function GenerateUI(listenerType)
 
     return {
         ui_panel: panel,
-        ui_container: container
+        ui_container: container,
+        ui_height: 450,
+        ui_width: 550
     }
 }
