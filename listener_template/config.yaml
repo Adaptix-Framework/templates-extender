@@ -3,5 +3,5 @@ extender_file: "_SO_FILE_HERE_"
 ax_file: "ax_config.axs"
 
 listener_name: "_LISTENER_"
-listener_type: "external"
+listener_type: "external"   # or "internal" for pivot (SMB/TCP)
 protocol: "_PROTOCOL_"

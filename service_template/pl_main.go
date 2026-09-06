@@ -1,67 +1,87 @@
 package main
 
 import (
-	adaptix "github.com/Adaptix-Framework/axc2"
+	adaptix "github.com/Adaptix-Framework/axc2/v2"
 )
 
-type Teamserver interface {
-	TsEventHookRegister(eventType string, name string, phase int, priority int, handler func(event any) error) string
-	TsServiceSendDataAll(service string, data string)
-	TsServiceSendDataClient(operator string, service string, data string)
-	TsExtenderDataSave(extenderName string, key string, value []byte) error
-	TsExtenderDataLoad(extenderName string, key string) ([]byte, error)
-}
+const (
+	logSrc = "service"
+	logCtg = "_SERVICE_"
+)
 
 type PluginService struct{}
 
 var (
-	Ts        Teamserver
+	Ts        adaptix.Teamserver
 	ModuleDir string
-	//Config    ServiceConfig
+	// Config    ServiceConfig
 )
 
 func InitPlugin(ts any, moduleDir string, serviceConfig string) adaptix.PluginService {
-	Ts = ts.(Teamserver)
+	Ts = ts.(adaptix.Teamserver)
 	ModuleDir = moduleDir
 
 	/// START CODE HERE
 
-	//	if err := loadConfig(serviceConfig); err != nil {
-	//		fmt.Printf("Config error: %v\n", err)
-	//		return &PluginService{}
-	//	}
+	// if err := loadConfig(serviceConfig); err != nil {
+	// 	Ts.TsLogAdd(adaptix.LogStatusWarn, 0, logSrc, logCtg, "Config error: %v", err)
+	// 	return &PluginService{}
+	// }
+	_ = serviceConfig
 
 	/// END CODE HERE
 
 	return &PluginService{}
 }
 
-func (p *PluginService) Call(operator string, function string, args string) {
+func (p *PluginService) CallRPC(operator string, function string, args string) (string, error) {
 	/// START CODE HERE
+
+	// switch function {
+	// case "get_config":
+	// 	return `{"ok":true}`, nil
+	// case "set_config":
+	// 	return `{"ok":true}`, nil
+	// }
+	_ = operator
+	_ = function
+	_ = args
+	return "", nil
 
 	/// END CODE HERE
 }
 
-//func loadConfig(serviceConfig string) error {
-//	data, err := Ts.TsExtenderDataLoad("service_name", "key")
-//	if err == nil && data != nil {
-//		err = json.Unmarshal(data, &Config)
-//		if err == nil {
-//			return nil
-//		}
-//		fmt.Printf("Failed to load config: %v\n", err)
-//		fmt.Printf("Use service configuration\n")
-//	}
-//	if serviceConfig == "" {
-//		return fmt.Errorf("empty service config")
-//	}
-//	return yaml.Unmarshal([]byte(serviceConfig), &Config)
-//}
+func (p *PluginService) Call(operator string, function string, args string) {
+	res, err := p.CallRPC(operator, function, args)
+	if err != nil {
+		Ts.TsPluginServiceSendDataClient(operator, "_SERVICE_", `{"ok":false}`)
+		return
+	}
+	if res != "" {
+		Ts.TsPluginServiceSendDataClient(operator, "_SERVICE_", res)
+	}
+}
 
-//func saveConfig() error {
-//	data, err := json.Marshal(&Config)
-//	if err != nil {
-//		return err
-//	}
-//	return Ts.TsExtenderDataSave("service_name", "key", data)
-//}
+////////// Example config persistence helpers (uncomment and adapt):
+//
+// func loadConfig(serviceConfig string) error {
+// 	data, err := Ts.TsExtenderDataLoad("_SERVICE_", "config")
+// 	if err == nil && data != nil {
+// 		if err = json.Unmarshal(data, &Config); err == nil {
+// 			return nil
+// 		}
+// 	}
+// 	if serviceConfig == "" {
+// 		return fmt.Errorf("empty service config")
+// 	}
+// 	// return yaml.Unmarshal([]byte(serviceConfig), &Config)
+// 	return nil
+// }
+//
+// func saveConfig() error {
+// 	data, err := json.Marshal(&Config)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return Ts.TsExtenderDataSave("_SERVICE_", "config", data)
+// }

@@ -3,116 +3,16 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
-	"io"
 	"math/rand/v2"
 	"time"
 
-	"github.com/Adaptix-Framework/axc2"
+	adaptix "github.com/Adaptix-Framework/axc2/v2"
 )
-
-type Teamserver interface {
-	TsAgentIsExists(agentId string) bool
-	TsAgentCreate(agentCrc string, agentId string, beat []byte, listenerName string, ExternalIP string, Async bool) (adaptix.AgentData, error)
-	TsAgentProcessData(agentId string, bodyData []byte) error
-	TsAgentUpdateData(newAgentData adaptix.AgentData) error
-	TsAgentTerminate(agentId string, terminateTaskId string) error
-
-	TsAgentUpdateDataPartial(agentId string, updateData interface{}) error
-	TsAgentSetTick(agentId string, listenerName string) error
-
-	TsAgentConsoleOutput(agentId string, messageType int, message string, clearText string, store bool)
-
-	TsAgentGetHostedAll(agentId string, maxDataSize int) ([]byte, error)
-	TsAgentGetHostedTasks(agentId string, maxDataSize int) ([]byte, error)
-	TsAgentGetHostedTasksCount(agentId string, count int, maxDataSize int) ([]byte, error)
-
-	TsTaskRunningExists(agentId string, taskId string) bool
-	TsTaskCreate(agentId string, cmdline string, client string, taskData adaptix.TaskData)
-	TsTaskUpdate(agentId string, updateData adaptix.TaskData)
-
-	TsTaskGetAvailableAll(agentId string, availableSize int) ([]adaptix.TaskData, error)
-	TsTaskGetAvailableTasks(agentId string, availableSize int) ([]adaptix.TaskData, int, error)
-	TsTaskGetAvailableTasksCount(agentId string, maxCount int, availableSize int) ([]adaptix.TaskData, int, error)
-	TsTasksPivotExists(agentId string, first bool) bool
-	TsTaskGetAvailablePivotAll(agentId string, availableSize int) ([]adaptix.TaskData, error)
-
-	TsClientGuiDisksWindows(taskData adaptix.TaskData, drives []adaptix.ListingDrivesDataWin)
-	TsClientGuiFilesStatus(taskData adaptix.TaskData)
-	TsClientGuiFilesWindows(taskData adaptix.TaskData, path string, files []adaptix.ListingFileDataWin)
-	TsClientGuiFilesUnix(taskData adaptix.TaskData, path string, files []adaptix.ListingFileDataUnix)
-	TsClientGuiProcessWindows(taskData adaptix.TaskData, process []adaptix.ListingProcessDataWin)
-	TsClientGuiProcessUnix(taskData adaptix.TaskData, process []adaptix.ListingProcessDataUnix)
-
-	TsCredentilsAdd(creds []map[string]interface{}) error
-	TsCredentilsEdit(credId string, username string, password string, realm string, credType string, tag string, storage string, host string) error
-	TsCredentialsSetTag(credsId []string, tag string) error
-	TsCredentilsDelete(credsId []string) error
-
-	TsDownloadAdd(agentId string, fileId string, fileName string, fileSize int) error
-	TsDownloadUpdate(fileId string, state int, data []byte) error
-	TsDownloadClose(fileId string, reason int) error
-	TsDownloadSave(agentId string, fileId string, filename string, content []byte) error
-	TsDownloadGetFilepath(fileId string) (string, error)
-	TsUploadGetFilepath(fileId string) (string, error)
-	TsUploadGetFileContent(fileId string) ([]byte, error)
-
-	TsListenerInteralHandler(watermark string, data []byte) (string, error)
-
-	TsGetPivotInfoByName(pivotName string) (string, string, string)
-	TsGetPivotInfoById(pivotId string) (string, string, string)
-	TsGetPivotByName(pivotName string) *adaptix.PivotData
-	TsGetPivotById(pivotId string) *adaptix.PivotData
-	TsPivotCreate(pivotId string, pAgentId string, chAgentId string, pivotName string, isRestore bool) error
-	TsPivotDelete(pivotId string) error
-
-	TsScreenshotAdd(agentId string, Note string, Content []byte) error
-	TsScreenshotNote(screenId string, note string) error
-	TsScreenshotDelete(screenId string) error
-
-	TsTargetsAdd(targets []map[string]interface{}) error
-	TsTargetsCreateAlive(agentData adaptix.AgentData) (string, error)
-	TsTargetsEdit(targetId string, computer string, domain string, address string, os int, osDesk string, tag string, info string, alive bool) error
-	TsTargetSetTag(targetsId []string, tag string) error
-	TsTargetRemoveSessions(agentsId []string) error
-	TsTargetDelete(targetsId []string) error
-
-	TsTunnelStart(TunnelId string) (string, error)
-	TsTunnelCreateSocks4(AgentId string, Info string, Lhost string, Lport int) (string, error)
-	TsTunnelCreateSocks5(AgentId string, Info string, Lhost string, Lport int, UseAuth bool, Username string, Password string) (string, error)
-	TsTunnelCreateLportfwd(AgentId string, Info string, Lhost string, Lport int, Thost string, Tport int) (string, error)
-	TsTunnelCreateRportfwd(AgentId string, Info string, Lport int, Thost string, Tport int) (string, error)
-	TsTunnelUpdateRportfwd(tunnelId int, result bool) (string, string, error)
-
-	TsTunnelStopSocks(AgentId string, Port int)
-	TsTunnelStopLportfwd(AgentId string, Port int)
-	TsTunnelStopRportfwd(AgentId string, Port int)
-
-	TsTunnelConnectionClose(channelId int, writeOnly bool)
-	TsTunnelConnectionHalt(channelId int, errorCode byte)
-	TsTunnelConnectionResume(AgentId string, channelId int, ioDirect bool)
-	TsTunnelConnectionData(channelId int, data []byte)
-	TsTunnelConnectionAccept(tunnelId int, channelId int)
-	TsTunnelPause(channelId int)
-	TsTunnelResume(channelId int)
-
-	TsTerminalConnExists(terminalId string) bool
-	TsTerminalGetPipe(AgentId string, terminalId string) (*io.PipeReader, *io.PipeWriter, error)
-	TsTerminalConnResume(agentId string, terminalId string, ioDirect bool)
-	TsTerminalConnData(terminalId string, data []byte)
-	TsTerminalConnClose(terminalId string, status string) error
-
-	TsConvertCpToUTF8(input string, codePage int) string
-	TsConvertUTF8toCp(input string, codePage int) string
-	TsWin32Error(errorCode uint) string
-}
 
 type PluginAgent struct{}
 
-type ExtenderAgent struct{}
-
 var (
-	Ts             Teamserver
+	Ts             adaptix.Teamserver
 	ModuleDir      string
 	AgentWatermark string
 )
@@ -120,153 +20,138 @@ var (
 func InitPlugin(ts any, moduleDir string, watermark string) adaptix.PluginAgent {
 	ModuleDir = moduleDir
 	AgentWatermark = watermark
-	Ts = ts.(Teamserver)
+	Ts = ts.(adaptix.Teamserver)
 	return &PluginAgent{}
 }
 
-func (p *PluginAgent) GetExtender() adaptix.ExtenderAgent {
-	return &ExtenderAgent{}
-}
-
-func makeProxyTask(packData []byte) adaptix.TaskData {
-	return adaptix.TaskData{Type: adaptix.TASK_TYPE_PROXY_DATA, Data: packData, Sync: false}
-}
-
-func getStringArg(args map[string]any, key string) (string, error) {
-	v, ok := args[key].(string)
-	if !ok {
-		return "", fmt.Errorf("parameter '%s' must be set", key)
+func (p *PluginAgent) AgentRestore(agentData adaptix.AgentData) adaptix.AgentFunctions {
+	return adaptix.AgentFunctions{
+		CreateCommand: CreateCommand,
+		ProcessData:   ProcessData,
+		Encrypt:       Encrypt,
+		Decrypt:       Decrypt,
+		PackTasks:     PackTasks,
+		PivotPackData: PivotPackData,
+		TunnelCB: adaptix.TunnelCallbacks{
+			ConnectTCP: TunnelMessageConnectTCP,
+			ConnectUDP: TunnelMessageConnectUDP,
+			WriteTCP:   TunnelMessageWriteTCP,
+			WriteUDP:   TunnelMessageWriteUDP,
+			Pause:      TunnelMessagePause,
+			Resume:     TunnelMessageResume,
+			Close:      TunnelMessageClose,
+			Reverse:    TunnelMessageReverse,
+			BindTCP:    TunnelMessageBindTCP,
+		},
+		TerminalCB: adaptix.TerminalCallbacks{
+			Start: TerminalMessageStart,
+			Write: TerminalMessageWrite,
+			Close: TerminalMessageClose,
+		},
 	}
-	return v, nil
-}
-
-func getFloatArg(args map[string]any, key string) (float64, error) {
-	v, ok := args[key].(float64)
-	if !ok {
-		return 0, fmt.Errorf("parameter '%s' must be set", key)
-	}
-	return v, nil
-}
-
-func getBoolArg(args map[string]any, key string) bool {
-	v, _ := args[key].(bool)
-	return v
 }
 
 /// TUNNEL
 
-func (ext *ExtenderAgent) TunnelCallbacks() adaptix.TunnelCallbacks {
-	return adaptix.TunnelCallbacks{
-		ConnectTCP: TunnelMessageConnectTCP,
-		ConnectUDP: TunnelMessageConnectUDP,
-		WriteTCP:   TunnelMessageWriteTCP,
-		WriteUDP:   TunnelMessageWriteUDP,
-		Pause:      TunnelMessagePause,
-		Resume:     TunnelMessageResume,
-		Close:      TunnelMessageClose,
-		Reverse:    TunnelMessageReverse,
-	}
-}
-
-func TunnelMessageConnectTCP(channelId int, tunnelType int, addressType int, address string, port int) adaptix.TaskData {
+func TunnelMessageConnectTCP(channelId int64, tunnelType int, addressType int, address string, port int) adaptix.TaskData {
 	var packData []byte
 	/// START CODE HERE
 
 	/// END CODE HERE
-	return makeProxyTask(packData)
+	return adaptix.MakeProxyTask(packData, 0)
 }
 
-func TunnelMessageConnectUDP(channelId int, tunnelType int, addressType int, address string, port int) adaptix.TaskData {
+func TunnelMessageConnectUDP(channelId int64, tunnelType int, addressType int, address string, port int) adaptix.TaskData {
 	var packData []byte
 	/// START CODE HERE
 
 	/// END CODE HERE
-	return makeProxyTask(packData)
+	return adaptix.MakeProxyTask(packData, 0)
 }
 
-func TunnelMessageWriteTCP(channelId int, data []byte) adaptix.TaskData {
+func TunnelMessageWriteTCP(channelId int64, data []byte) adaptix.TaskData {
 	var packData []byte
 	/// START CODE HERE
 
 	/// END CODE HERE
-	return makeProxyTask(packData)
+	return adaptix.MakeProxyTask(packData, 0)
 }
 
-func TunnelMessageWriteUDP(channelId int, data []byte) adaptix.TaskData {
+func TunnelMessageWriteUDP(channelId int64, data []byte) adaptix.TaskData {
 	var packData []byte
 	/// START CODE HERE
 
 	/// END CODE HERE
-	return makeProxyTask(packData)
+	return adaptix.MakeProxyTask(packData, 0)
 }
 
-func TunnelMessagePause(channelId int) adaptix.TaskData {
+func TunnelMessagePause(channelId int64) adaptix.TaskData {
 	var packData []byte
 	/// START CODE HERE
 
 	/// END CODE HERE
-	return makeProxyTask(packData)
+	return adaptix.MakeProxyTask(packData, 0)
 }
 
-func TunnelMessageResume(channelId int) adaptix.TaskData {
+func TunnelMessageResume(channelId int64) adaptix.TaskData {
 	var packData []byte
 	/// START CODE HERE
 
 	/// END CODE HERE
-	return makeProxyTask(packData)
+	return adaptix.MakeProxyTask(packData, 0)
 }
 
-func TunnelMessageClose(channelId int) adaptix.TaskData {
+func TunnelMessageClose(channelId int64) adaptix.TaskData {
 	var packData []byte
 	/// START CODE HERE
 
 	/// END CODE HERE
-	return makeProxyTask(packData)
+	return adaptix.MakeProxyTask(packData, 0)
 }
 
-func TunnelMessageReverse(tunnelId int, port int) adaptix.TaskData {
+func TunnelMessageReverse(tunnelId int64, port int) adaptix.TaskData {
 	var packData []byte
 	/// START CODE HERE
 
 	/// END CODE HERE
-	return makeProxyTask(packData)
+	return adaptix.MakeProxyTask(packData, 0)
+}
+
+func TunnelMessageBindTCP(channelId int64, addressType int, address string, port int) adaptix.TaskData {
+	var packData []byte
+	/// START CODE HERE
+
+	/// END CODE HERE
+	return adaptix.MakeProxyTask(packData, 0)
 }
 
 /// TERMINAL
 
-func (ext *ExtenderAgent) TerminalCallbacks() adaptix.TerminalCallbacks {
-	return adaptix.TerminalCallbacks{
-		Start: TerminalMessageStart,
-		Write: TerminalMessageWrite,
-		Close: TerminalMessageClose,
-	}
-}
-
-func TerminalMessageStart(terminalId int, program string, sizeH int, sizeW int, oemCP int) adaptix.TaskData {
+func TerminalMessageStart(terminalId int64, program string, sizeH int, sizeW int, oemCP int) adaptix.TaskData {
 	var packData []byte
 	/// START CODE HERE
 
 	/// END CODE HERE
-	return makeProxyTask(packData)
+	return adaptix.MakeProxyTask(packData, 0)
 }
 
-func TerminalMessageWrite(terminalId int, oemCP int, data []byte) adaptix.TaskData {
+func TerminalMessageWrite(terminalId int64, oemCP int, data []byte) adaptix.TaskData {
 	var packData []byte
 	/// START CODE HERE
 
 	/// END CODE HERE
-	return makeProxyTask(packData)
+	return adaptix.MakeProxyTask(packData, 0)
 }
 
-func TerminalMessageClose(terminalId int) adaptix.TaskData {
+func TerminalMessageClose(terminalId int64) adaptix.TaskData {
 	var packData []byte
 	/// START CODE HERE
 
 	/// END CODE HERE
-	return makeProxyTask(packData)
+	return adaptix.MakeProxyTask(packData, 0)
 }
 
-////// PLUGIN AGENT
+/// BUILD
 
 func (p *PluginAgent) GenerateProfiles(profile adaptix.BuildProfile) ([][]byte, error) {
 	var agentProfiles [][]byte
@@ -279,7 +164,9 @@ func (p *PluginAgent) GenerateProfiles(profile adaptix.BuildProfile) ([][]byte, 
 		}
 
 		/// START CODE HERE
-
+		_ = listenerMap
+		_ = AgentWatermark
+		agentProfiles = append(agentProfiles, nil)
 		/// END CODE HERE
 	}
 	return agentProfiles, nil
@@ -292,68 +179,70 @@ func (p *PluginAgent) BuildPayload(profile adaptix.BuildProfile, agentProfiles [
 	)
 
 	/// START CODE HERE
-
+	// profile.AgentConfig is JSON from GenerateUI container.
+	_ = profile
+	_ = agentProfiles
 	/// END CODE HERE
 
 	return Payload, Filename, nil
 }
 
-func (p *PluginAgent) CreateAgent(beat []byte) (adaptix.AgentData, adaptix.ExtenderAgent, error) {
+func (p *PluginAgent) CreateAgent(beat []byte) (adaptix.AgentData, adaptix.AgentFunctions, error) {
 	var agentData adaptix.AgentData
 
 	/// START CODE HERE
+	_ = beat
+	/// END CODE HERE
 
-	/// END CODE
-
-	return agentData, &ExtenderAgent{}, nil
+	return agentData, p.AgentRestore(agentData), nil
 }
 
-// Extender methods
+/// CRYPTO / TASK
 
-func (ext *ExtenderAgent) Encrypt(data []byte, key []byte) ([]byte, error) {
-	/// START CODE
+func Encrypt(data []byte, key []byte) ([]byte, error) {
+	/// START CODE HERE
 	return data, nil
-	/// END CODE
+	/// END CODE HERE
 }
 
-func (ext *ExtenderAgent) Decrypt(data []byte, key []byte) ([]byte, error) {
-	/// START CODE
+func Decrypt(data []byte, key []byte) ([]byte, error) {
+	/// START CODE HERE
 	return data, nil
-	/// END CODE
+	/// END CODE HERE
 }
 
-func (ext *ExtenderAgent) PackTasks(agentData adaptix.AgentData, tasks []adaptix.TaskData) ([]byte, error) {
-
+func PackTasks(agentData adaptix.AgentData, tasks []adaptix.TaskData) ([]byte, error) {
 	var packData []byte
 
 	/// START CODE HERE
-
-	/// END CODE
+	// Encode tasks for the agent wire format. TaskId is int64.
+	_ = agentData
+	_ = tasks
+	/// END CODE HERE
 
 	return packData, nil
 }
 
-func (ext *ExtenderAgent) PivotPackData(pivotId string, data []byte) (adaptix.TaskData, error) {
+func PivotPackData(pivotId string, data []byte) (adaptix.TaskData, error) {
 	var (
 		packData []byte
-		err      error = nil
+		err      error
 	)
 
 	/// START CODE HERE
+	_ = pivotId
+	_ = data
+	/// END CODE HERE
 
-	/// END CODE
-
-	taskData := adaptix.TaskData{
-		TaskId: fmt.Sprintf("%08x", rand.Uint32()),
+	return adaptix.TaskData{
+		TaskId: int64(rand.Uint32()),
 		Type:   adaptix.TASK_TYPE_PROXY_DATA,
 		Data:   packData,
 		Sync:   false,
-	}
-
-	return taskData, err
+	}, err
 }
 
-func (ext *ExtenderAgent) CreateCommand(agentData adaptix.AgentData, args map[string]any) (adaptix.TaskData, adaptix.ConsoleMessageData, error) {
+func CreateCommand(agentData adaptix.AgentData, args map[string]any) (adaptix.TaskData, adaptix.ConsoleMessageData, error) {
 	var (
 		taskData    adaptix.TaskData
 		messageData adaptix.ConsoleMessageData
@@ -378,16 +267,15 @@ func (ext *ExtenderAgent) CreateCommand(agentData adaptix.AgentData, args map[st
 	messageData.Message, _ = args["message"].(string)
 
 	/// START CODE HERE
-
-	fmt.Println(command)
-	fmt.Println(subcommand)
-
-	/// END CODE
+	_ = agentData
+	_ = command
+	_ = subcommand
+	/// END CODE HERE
 
 	return taskData, messageData, err
 }
 
-func (ext *ExtenderAgent) ProcessData(agentData adaptix.AgentData, decryptedData []byte) error {
+func ProcessData(agentData adaptix.AgentData, decryptedData []byte) error {
 	var outTasks []adaptix.TaskData
 
 	taskData := adaptix.TaskData{
@@ -399,15 +287,21 @@ func (ext *ExtenderAgent) ProcessData(agentData adaptix.AgentData, decryptedData
 		Sync:        true,
 	}
 
-	/// START CODE
-
-	fmt.Printf(taskData.TaskId)
-
-	/// END CODE
+	/// START CODE HERE
+	_ = decryptedData
+	_ = taskData
+	/// END CODE HERE
 
 	for _, task := range outTasks {
 		Ts.TsTaskUpdate(agentData.Id, task)
 	}
 
 	return nil
+}
+
+func (p *PluginAgent) Call(operator string, agentId int64, function string, args string) {
+	_ = operator
+	_ = agentId
+	_ = function
+	_ = args
 }
