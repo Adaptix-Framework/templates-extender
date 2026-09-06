@@ -9,12 +9,6 @@ function RegisterCommands(listener_type)
 
     let commands = ax.create_commands_group("_AGENT_", [cmd_pwd]);
 
-    if(listener_type == "_LISTENER_") {
-        let commands_external = ax.create_commands_group("_AGENT_", [] );
-
-        return { commands_windows: commands_external }
-    }
-
     return {
         commands_windows: commands,
         commands_linux: commands,
