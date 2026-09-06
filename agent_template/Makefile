@@ -1,12 +1,13 @@
 all: clean
 	@ echo "    * Building _AGENT_ plugin"
-	@ mkdir dist
+	@ mkdir -p dist
 	@ cp config.yaml ax_config.axs ./dist/
-	@ GOEXPERIMENT=jsonv2,greenteagc go build -buildmode=plugin -ldflags="-s -w" -o ./dist/_AGENT_.so pl_main.go pl_agent.go
+	@ go build -buildmode=plugin -ldflags="-s -w" -o ./dist/_AGENT_.so pl_main.go
 	@ echo "      done..."
 
-#	@ echo "    * Building agent"
-# 	PRE BUILDING OBJECTS
+# Optional: build agent payload objects / binaries
+#	@ echo "    * Building agent payload"
+#	@ (cd src_agent && $(MAKE) --no-print-directory)
 #	@ echo "      done..."
 
 clean:

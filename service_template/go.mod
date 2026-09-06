@@ -1,7 +1,7 @@
-module adaptix_service_NAME
+module adaptix_service_NAME_PROTOCOL
 
-go 1.25.4
+go 1.26.5
 
-require (
-	github.com/Adaptix-Framework/axc2 v1.1.3
-)
+require github.com/Adaptix-Framework/axc2/v2 v2.0.14
+
+require github.com/Adaptix-Framework/axsafe v0.0.0-20260712144531-7ba271ad9303 // indirect
